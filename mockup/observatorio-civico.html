@@ -1,0 +1,525 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Observatório Cívico</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --bg: #0e0c0c;
+            --bg-card: #161313;
+            --bg-elevated: #1c1818;
+            --border: #2a2424;
+            --border-light: #352e2e;
+            --crimson: #8b1a1a;
+            --crimson-bright: #c0392b;
+            --crimson-glow: #e74c3c;
+            --amber: #d4a017;
+            --amber-dim: rgba(212, 160, 23, 0.12);
+            --amber-text: #e8bc3a;
+            --teal: #2a9d8f;
+            --teal-dim: rgba(42, 157, 143, 0.1);
+            --steel: #5a7d99;
+            --steel-dim: rgba(90, 125, 153, 0.1);
+            --text: #e8e0d8;
+            --text-secondary: #a89e94;
+            --text-muted: #6e6460;
+            --text-bright: #f5f0eb;
+            --font-display: 'Playfair Display', Georgia, serif;
+            --font-body: 'DM Sans', -apple-system, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+            --max-w: 740px;
+        }
+
+        html { font-size: 15px; scroll-behavior: smooth; }
+        body {
+            font-family: var(--font-body);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            -webkit-font-smoothing: antialiased;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        body::before {
+            content: '';
+            display: block;
+            height: 3px;
+            background: linear-gradient(90deg, var(--crimson) 0%, var(--amber) 50%, var(--crimson) 100%);
+        }
+
+        /* ═══ BIG BROTHER TV ═══ */
+        .bb-tv {
+            position: fixed;
+            z-index: 9999;
+            width: 76px;
+            cursor: pointer;
+            user-select: none;
+            filter: drop-shadow(0 3px 12px rgba(0,0,0,0.6));
+            transition: top 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        left 0.5s cubic-bezier(0.34, 1.56, 0.64, 1),
+                        opacity 0.4s ease,
+                        transform 0.4s ease;
+        }
+        .bb-tv.hidden {
+            transform: translateY(-200px) scale(0.3);
+            opacity: 0;
+            pointer-events: none;
+        }
+        .bb-tv.descending {
+            animation: tvPop 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        @keyframes tvPop {
+            from { transform: translateY(-200px) scale(0.3); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+
+        .tv-body {
+            background: #2a2422;
+            border-radius: 7px;
+            padding: 5px;
+            border: 1.5px solid #3d3533;
+            position: relative;
+        }
+        .tv-body::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 8px;
+            background: linear-gradient(145deg, #4a403a 0%, transparent 40%);
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+        .tv-screen {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 4/3;
+            background: radial-gradient(ellipse at center, #0a0808 0%, #000 100%);
+            border-radius: 4px;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .tv-screen::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: repeating-linear-gradient(0deg, transparent, transparent 1px, rgba(0,0,0,0.12) 1px, rgba(0,0,0,0.12) 2px);
+            z-index: 10;
+            pointer-events: none;
+        }
+        .tv-screen::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse at center, rgba(139,26,26,0.06) 0%, transparent 70%);
+            z-index: 5;
+            pointer-events: none;
+        }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            92% { opacity: 1; }
+            93% { opacity: 0.8; }
+            94% { opacity: 1; }
+            96% { opacity: 0.9; }
+            97% { opacity: 1; }
+        }
+        .tv-screen { animation: flicker 4s infinite; }
+        .tv-static {
+            position: absolute; inset: 0; z-index: 8; opacity: 0.04; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 64px;
+        }
+        .eye-container { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; z-index: 3; }
+        .eye { position: relative; width: 32px; height: 19px; }
+        .eye-outer {
+            width: 100%; height: 100%;
+            background: radial-gradient(ellipse, #d4cdc4 0%, #b0a898 60%, #8a8278 100%);
+            border-radius: 50%;
+            clip-path: ellipse(50% 50% at 50% 50%);
+            position: relative; overflow: hidden;
+            box-shadow: 0 0 8px rgba(139,26,26,0.4), 0 0 20px rgba(139,26,26,0.15);
+        }
+        .eye-iris {
+            position: absolute; width: 12px; height: 12px; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); border-radius: 50%;
+            background: radial-gradient(circle, #8b1a1a 0%, #5c1010 50%, #2d0808 100%);
+            transition: transform 0.08s ease-out;
+            box-shadow: inset 0 0 3px rgba(0,0,0,0.5);
+        }
+        .eye-pupil {
+            position: absolute; width: 5px; height: 5px; top: 50%; left: 50%;
+            transform: translate(-50%, -50%); border-radius: 50%; background: #000;
+        }
+        .eye-pupil::after {
+            content: ''; position: absolute; width: 2px; height: 2px;
+            top: 1px; left: 1px; border-radius: 50%; background: rgba(255,255,255,0.6);
+        }
+        .eye-veins { position: absolute; inset: 0; z-index: 1; }
+        .eye-veins::before, .eye-veins::after { content: ''; position: absolute; background: rgba(139,26,26,0.25); border-radius: 50%; }
+        .eye-veins::before { width: 14px; height: 1px; top: 35%; left: 1px; transform: rotate(-15deg); }
+        .eye-veins::after { width: 12px; height: 1px; bottom: 30%; right: 2px; transform: rotate(10deg); }
+        .eye-lid-top, .eye-lid-bottom { position: absolute; left: -2px; right: -2px; height: 55%; z-index: 4; }
+        .eye-lid-top { top: -53%; background: #0a0808; border-radius: 0 0 50% 50%; transition: top 0.15s ease; }
+        .eye-lid-bottom { bottom: -53%; background: #0a0808; border-radius: 50% 50% 0 0; transition: bottom 0.15s ease; }
+        .eye.blinking .eye-lid-top { top: -3%; }
+        .eye.blinking .eye-lid-bottom { bottom: -3%; }
+        .tv-antenna { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); width: 30px; height: 13px; }
+        .tv-antenna::before, .tv-antenna::after { content: ''; position: absolute; bottom: 0; width: 1.5px; height: 12px; background: #3d3533; border-radius: 1px; }
+        .tv-antenna::before { left: 6px; transform: rotate(-22deg); transform-origin: bottom center; }
+        .tv-antenna::after { right: 6px; transform: rotate(22deg); transform-origin: bottom center; }
+        .tv-stand { width: 22px; height: 3px; background: #2a2422; border: 1px solid #3d3533; border-top: none; margin: 0 auto; border-radius: 0 0 3px 3px; }
+        .tv-indicator {
+            position: absolute; bottom: 3px; right: 7px; width: 2.5px; height: 2.5px;
+            background: var(--crimson-bright); border-radius: 50%;
+            box-shadow: 0 0 4px rgba(192,57,43,0.6); z-index: 2;
+            animation: indicatorPulse 2s ease-in-out infinite;
+        }
+        @keyframes indicatorPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* ═══ HEADER ═══ */
+        .header { background: var(--bg); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 50; }
+        .header-inner { max-width: var(--max-w); margin: 0 auto; padding: 1.1rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
+        .logo { display: flex; align-items: center; gap: 0.7rem; }
+        .logo-eye-icon { width: 28px; height: 28px; color: var(--amber); filter: drop-shadow(0 0 6px rgba(212,160,23,0.3)); }
+        .logo-text { display: flex; flex-direction: column; }
+        .logo-name { font-family: var(--font-mono); font-size: 0.82rem; font-weight: 700; color: var(--text-bright); letter-spacing: 0.06em; text-transform: uppercase; }
+        .logo-sub { font-family: var(--font-mono); font-size: 0.52rem; color: var(--crimson-bright); letter-spacing: 0.14em; text-transform: uppercase; }
+        .header-badges { display: flex; gap: 5px; }
+        .h-badge { font-family: var(--font-mono); font-size: 0.5rem; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 7px; border: 1px solid var(--border); color: var(--text-muted); border-radius: 2px; }
+
+        main { flex: 1; max-width: var(--max-w); margin: 0 auto; padding: 2.25rem 1.5rem 3rem; width: 100%; }
+
+        .article { padding-bottom: 2.75rem; margin-bottom: 2.75rem; border-bottom: 1px solid var(--border); }
+        .article:last-of-type { border-bottom: none; margin-bottom: 1.5rem; }
+        .article-meta { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; flex-wrap: wrap; }
+        .meta-id { font-family: var(--font-mono); font-size: 0.62rem; color: var(--text-muted); }
+        .meta-tag { font-family: var(--font-mono); font-size: 0.58rem; font-weight: 600; padding: 2px 8px; border-radius: 2px; border: 1px solid; }
+        .tag-economia { border-color: #2a4a7a; color: #6ea8e0; background: rgba(42,74,122,0.15); }
+        .tag-orcamento { border-color: #7a5a1a; color: var(--amber-text); background: var(--amber-dim); }
+        .tag-judiciario { border-color: #5a2a7a; color: #b88ae0; background: rgba(90,42,122,0.12); }
+        .tag-legislativo { border-color: #7a3a1a; color: #e09060; background: rgba(122,58,26,0.12); }
+        .meta-featured { font-family: var(--font-mono); font-size: 0.58rem; font-weight: 700; color: var(--bg); background: var(--amber); padding: 2px 8px; border-radius: 2px; margin-left: auto; }
+        .article-sources { display: flex; align-items: center; gap: 5px; font-family: var(--font-mono); font-size: 0.58rem; color: var(--text-muted); margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border); }
+        .article-sources svg { width: 12px; height: 12px; flex-shrink: 0; opacity: 0.5; }
+        .article-title { font-family: var(--font-display); font-size: 1.75rem; font-weight: 900; line-height: 1.2; color: var(--text-bright); margin-bottom: 0.625rem; }
+        .article-lead { font-size: 0.95rem; color: var(--text-secondary); line-height: 1.75; margin-bottom: 1.75rem; }
+
+        .v { font-family: var(--font-mono); font-size: 0.84em; background: var(--amber-dim); border-bottom: 1.5px solid var(--amber); padding: 1px 4px; cursor: help; color: var(--amber-text); transition: background 0.15s; }
+        .v:hover { background: rgba(212,160,23,0.22); }
+        .label { font-family: var(--font-mono); font-size: 0.62rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.5rem; }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.875rem; margin-bottom: 1.75rem; }
+        @media (max-width: 600px) { .grid-2 { grid-template-columns: 1fr; } }
+        .box { padding: 1rem 1.125rem; border-left: 3px solid; border-radius: 0 4px 4px 0; background: var(--bg-card); }
+        .box.fact { border-color: var(--steel); background: var(--steel-dim); }
+        .box.fact .label { color: var(--steel); }
+        .box.insight { border-color: var(--teal); background: var(--teal-dim); }
+        .box.insight .label { color: var(--teal); }
+        .box ul { list-style: none; }
+        .box li { font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 0.6rem; line-height: 1.6; }
+        .box li strong { color: var(--text-bright); font-weight: 600; }
+        .box p { font-size: 0.84rem; color: var(--text-secondary); line-height: 1.65; }
+
+        .smoke { position: relative; background: rgba(139,26,26,0.08); border: 1px solid rgba(192,57,43,0.2); border-radius: 5px; padding: 1.25rem 1.125rem 1.125rem; margin-bottom: 1.75rem; }
+        .smoke-badge { position: absolute; top: -9px; left: 14px; background: var(--crimson-bright); color: #fff; font-family: var(--font-mono); font-size: 0.52rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; padding: 2px 9px; border-radius: 2px; display: flex; align-items: center; gap: 4px; }
+        .smoke-badge svg { width: 10px; height: 10px; }
+        .smoke h4 { font-size: 0.8rem; font-weight: 700; color: var(--text-bright); margin: 0.25rem 0 0.375rem; }
+        .smoke p { font-size: 0.84rem; color: var(--text-secondary); line-height: 1.65; }
+        .smoke .evi { margin-top: 0.5rem; list-style: none; }
+        .smoke .evi li { font-size: 0.82rem; color: var(--text-secondary); padding: 0.4rem 0 0.4rem 0.875rem; border-left: 2px solid rgba(192,57,43,0.35); margin-bottom: 0.25rem; line-height: 1.6; }
+        .smoke .evi li strong { color: var(--text-bright); font-weight: 600; }
+
+        .confronto { background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 5px; padding: 1.125rem; margin-bottom: 1.75rem; }
+        .confronto .label { color: var(--text-muted); }
+        .confronto-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.5rem; }
+        @media (max-width: 600px) { .confronto-grid { grid-template-columns: 1fr; } }
+        .confronto-card { background: var(--bg-card); padding: 0.875rem; border-radius: 4px; border: 1px solid var(--border); }
+        .confronto-card .cl { font-family: var(--font-mono); font-size: 0.55rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.25rem; display: block; }
+        .confronto-card.reality .cl { color: var(--crimson-glow); }
+        .confronto-card p { font-size: 0.82rem; color: var(--text-secondary); line-height: 1.6; }
+
+        .raio-x { border-top: 1px solid var(--border); padding-top: 1.25rem; margin-bottom: 1.25rem; }
+        .raio-x .label { color: var(--text-muted); }
+        .raio-x-list { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.625rem; }
+        .raio-x-list.single { grid-template-columns: 1fr; max-width: 440px; }
+        @media (max-width: 600px) { .raio-x-list { grid-template-columns: 1fr; } }
+        .person { display: flex; gap: 0.75rem; }
+        .person-avatar { flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; background: var(--bg-elevated); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-weight: 700; font-size: 0.65rem; color: var(--text-muted); }
+        .person-info h4 { font-size: 0.85rem; font-weight: 600; color: var(--text-bright); }
+        .person-info .role { font-size: 0.65rem; color: var(--text-muted); margin-bottom: 0.3rem; }
+        .person-info .bio { font-size: 0.78rem; color: var(--text-secondary); line-height: 1.55; background: var(--bg-elevated); border: 1px solid var(--border); padding: 0.5rem 0.625rem; border-radius: 4px; }
+
+        .video-ref { border-top: 1px solid var(--border); padding-top: 1.125rem; }
+        .video-ref .label { color: var(--text-muted); margin-bottom: 0.625rem; }
+        .video-box { display: flex; align-items: center; gap: 0.875rem; background: var(--bg-elevated); border: 1px solid var(--border); padding: 0.875rem 1rem; border-radius: 6px; cursor: pointer; transition: border-color 0.2s; }
+        .video-box:hover { border-color: var(--crimson-bright); }
+        .play { flex-shrink: 0; width: 36px; height: 36px; background: var(--crimson-bright); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .play svg { width: 13px; height: 13px; color: #fff; }
+        .video-text strong { font-size: 0.82rem; display: block; margin-bottom: 1px; color: var(--text-bright); }
+        .video-text span { font-size: 0.72rem; color: var(--text-muted); line-height: 1.4; }
+
+        .glossary { background: var(--bg-card); border: 1px solid var(--border); padding: 1.5rem; border-radius: 6px; margin-top: 0.5rem; }
+        .glossary h3 { font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700; color: var(--amber-text); letter-spacing: 0.06em; margin-bottom: 1rem; padding-bottom: 0.625rem; border-bottom: 1px solid var(--border); }
+        .glossary-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        @media (max-width: 600px) { .glossary-grid { grid-template-columns: 1fr; } }
+        .glossary-item strong { color: var(--text-bright); font-size: 0.8rem; display: block; margin-bottom: 2px; }
+        .glossary-item p { font-size: 0.75rem; color: var(--text-muted); line-height: 1.55; }
+
+        .footer { background: var(--bg); margin-top: auto; border-top: 1px solid var(--border); }
+        .footer::after { content: ''; display: block; height: 3px; background: linear-gradient(90deg, var(--crimson) 0%, var(--amber) 50%, var(--crimson) 100%); }
+        .footer-inner { max-width: var(--max-w); margin: 0 auto; padding: 2.5rem 1.5rem 1.5rem; }
+        .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 2rem; margin-bottom: 1.5rem; }
+        @media (max-width: 600px) { .footer-grid { grid-template-columns: 1fr; } }
+        .footer-brand h3 { font-family: var(--font-mono); color: var(--text-bright); font-size: 0.8rem; font-weight: 700; margin-bottom: 0.5rem; letter-spacing: 0.04em; text-transform: uppercase; }
+        .footer-brand p { font-size: 0.75rem; line-height: 1.6; color: var(--text-muted); max-width: 280px; margin-bottom: 0.75rem; }
+        .f-tags { display: flex; gap: 5px; }
+        .f-tag { font-family: var(--font-mono); font-size: 0.5rem; text-transform: uppercase; padding: 2px 6px; border: 1px solid var(--border); color: var(--text-muted); border-radius: 2px; }
+        .footer-col h4 { font-family: var(--font-mono); color: var(--text-secondary); font-size: 0.65rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.625rem; padding-bottom: 0.375rem; border-bottom: 1px solid var(--border); }
+        .footer-col ul { list-style: none; }
+        .footer-col li { margin-bottom: 0.375rem; }
+        .footer-col a { font-size: 0.72rem; color: var(--text-muted); text-decoration: none; transition: color 0.15s; }
+        .footer-col a:hover { color: var(--amber-text); }
+        .footer-bottom { border-top: 1px solid var(--border); padding-top: 1rem; display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-family: var(--font-mono); font-size: 0.52rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <!-- ═══ BIG BROTHER TV ═══ -->
+    <div class="bb-tv descending" id="bbTv">
+        <div class="tv-antenna"></div>
+        <div class="tv-body">
+            <div class="tv-screen">
+                <div class="tv-static"></div>
+                <div class="eye-container">
+                    <div class="eye" id="eye">
+                        <div class="eye-outer">
+                            <div class="eye-veins"></div>
+                            <div class="eye-iris" id="iris">
+                                <div class="eye-pupil"></div>
+                            </div>
+                        </div>
+                        <div class="eye-lid-top"></div>
+                        <div class="eye-lid-bottom"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="tv-indicator"></div>
+        </div>
+        <div class="tv-stand"></div>
+    </div>
+
+    <header class="header">
+        <div class="header-inner">
+            <div class="logo">
+                <svg class="logo-eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+                <div class="logo-text">
+                    <span class="logo-name">Observatório Cívico</span>
+                    <span class="logo-sub">Transparência Radical</span>
+                </div>
+            </div>
+            <div class="header-badges">
+                <span class="h-badge">Sem Viés</span>
+                <span class="h-badge">Sem Ads</span>
+                <span class="h-badge">Open Source</span>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <article class="article">
+            <div class="article-meta"><span class="meta-id">#2026-PREV-01</span><span class="meta-tag tag-economia">Economia</span><span class="meta-tag tag-orcamento">Orçamento</span><span class="meta-featured">Destaque</span></div>
+            <div class="article-sources"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>Fontes: Agência Senado · Agência Câmara · Portal da Transparência (PLOA)</div>
+            <h2 class="article-title">Governo Propõe Salário Mínimo de R$ 1.627 para 2026 e Avança Isenção do IR</h2>
+            <p class="article-lead">O governo federal enviou ao Congresso o <span class="v" title="Proposta detalhada de arrecadação e gastos do governo para o ano seguinte">PLOA</span> prevendo o salário mínimo de R$ 1.627,00 para 2026 — reajuste de 7,44% sobre o piso atual. A medida ocorre em paralelo à implementação da isenção de IR para quem ganha até R$ 5.000, promessa de campanha agendada para o ano eleitoral.</p>
+            <div class="grid-2">
+                <div class="box fact"><div class="label">Beneficiados</div><ul><li><strong>Diretos:</strong> Aposentados, pensionistas do INSS e trabalhadores que recebem o piso (~54 milhões de pessoas) com recomposição inflacionária + ganho real limitado.</li><li><strong>Indiretos:</strong> Mercado financeiro e <span class="v" title="Pessoas que vivem de rendimentos de investimentos">rentistas</span>. A limitação do salário mínimo preserva orçamento para juros da dívida.</li></ul></div>
+                <div class="box insight"><div class="label">Efeitos Práticos</div><p>O aumento segue a regra do pacote fiscal de 2024, que limitou o ganho real a 2,5% ao ano. O trabalhador recebe aumento nominal, mas o poder de compra cresce em ritmo travado.</p><p style="margin-top:0.5rem">A isenção do IR funciona como <span class="v" title="Quando o governo abre mão de receber dinheiro de impostos">renúncia fiscal</span> que pressiona as contas públicas, exigindo cortes em outras áreas ou aumento de impostos sobre consumo.</p></div>
+            </div>
+            <div class="smoke"><span class="smoke-badge"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Cortina de Fumaça</span><h4>A Narrativa do "Imposto para os Ricos"</h4><p>O governo enfatiza a taxação de "super-ricos" (renda acima de R$ 50 mil) como compensação para a isenção do IR da classe média.</p><ul class="evi"><li><strong>Ocultação:</strong> A arrecadação com "super-ricos" é volátil e insuficiente para cobrir o rombo da isenção geral.</li><li><strong>Manipulação:</strong> O foco na isenção em 2026 desvia a atenção dos cortes em benefícios previdenciários e no Abono Salarial.</li></ul></div>
+            <div class="confronto"><div class="label">Confronto: Discurso Oficial vs. Realidade</div><div class="confronto-grid"><div class="confronto-card"><span class="cl">Discurso Oficial</span><p>Afirma que o orçamento de 2026 é "socialmente equilibrado" e promove justiça fiscal.</p></div><div class="confronto-card reality"><span class="cl">Contradito (Realidade)</span><p>O reajuste de R$ 1.627 está atrelado a travas fiscais. O governo "dá com uma mão" (isenção de IR) no ano eleitoral, enquanto "tira com a outra" (travas no ganho real e restrições no abono).</p></div></div></div>
+            <div class="raio-x"><div class="label">Raio-X dos Agentes Públicos</div><div class="raio-x-list"><div class="person"><div class="person-avatar">L</div><div class="person-info"><h4>Luiz Inácio Lula da Silva</h4><p class="role">Presidente</p><p class="bio">Governa em busca da reeleição. Histórico inclui condenações na Lava Jato por corrupção passiva e lavagem de dinheiro, anuladas pelo STF por questões processuais, sem absolvição do mérito.</p></div></div><div class="person"><div class="person-avatar">FH</div><div class="person-info"><h4>Fernando Haddad</h4><p class="role">Ministro da Fazenda</p><p class="bio">Articulador do pacote fiscal. Réu por caixa dois em 2012 (absolvido pelo TRE-SP). Alvo de inquéritos por corrupção baseados em delações da Odebrecht (arquivados por falta de provas).</p></div></div></div></div>
+            <div class="video-ref"><div class="label">Referência de Contexto</div><div class="video-box"><div class="play"><svg fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div><div class="video-text"><strong>Cortes de gastos e manobras no orçamento explicados</strong><span>Vídeo sobre a aprovação do pacote fiscal de 2024 e as limitações estruturais do cenário vigente.</span></div></div></div>
+        </article>
+
+        <article class="article">
+            <div class="article-meta"><span class="meta-id">#2024-FIM-02</span><span class="meta-tag tag-judiciario">Judiciário / Militar</span></div>
+            <h2 class="article-title">Indiciamento de Bolsonaro e Generais</h2>
+            <p class="article-lead">PF indicia ex-presidente e alta cúpula militar por tentativa de golpe de Estado, abolição violenta do Estado de Direito e organização criminosa.</p>
+            <div class="grid-2"><div class="box fact"><div class="label">Beneficiados</div><ul><li><strong>Diretos:</strong> Governo atual (enfraquecimento jurídico/moral da oposição).</li><li><strong>Indiretos:</strong> STF (validação das ações rigorosas nos inquéritos anteriores).</li></ul></div><div class="box insight"><div class="label">Significado Real</div><p>Consolidação jurídica da <span class="v" title="Impedimento de ser votado">inelegibilidade</span> da liderança de direita e isolamento das Forças Armadas da política.</p></div></div>
+            <div class="smoke"><span class="smoke-badge"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Cortina de Fumaça</span><p style="margin-top:0.25rem">A gravidade dos detalhes monopoliza a pauta midiática, reduzindo o espaço para críticas sobre gestão administrativa, inflação ou articulação no Congresso.</p></div>
+            <div class="raio-x"><div class="label">Raio-X do Agente Público</div><div class="raio-x-list single"><div class="person"><div class="person-avatar">JB</div><div class="person-info"><h4>Jair Bolsonaro</h4><p class="role">Ex-Presidente</p><p class="bio">Declarado inelegível pelo TSE. <span class="v" title="Acusação formal da polícia">Indiciado</span> pela PF em três inquéritos: cartão de vacina, joias sauditas e golpe de Estado.</p></div></div></div></div>
+        </article>
+
+        <article class="article">
+            <div class="article-meta"><span class="meta-id">#2024-FIM-03</span><span class="meta-tag tag-legislativo">Legislativo</span></div>
+            <h2 class="article-title">Disputa das "Emendas Pix"</h2>
+            <p class="article-lead">STF mantém bloqueio de emendas até garantia de rastreabilidade. Congresso cede e cria novas regras para liberação.</p>
+            <div class="grid-2"><div class="box fact"><div class="label">Beneficiados</div><ul><li><strong>Diretos:</strong> Poder Executivo (recupera controle orçamentário).</li><li><strong>Indiretos:</strong> Sociedade civil (ganho teórico de ferramentas de fiscalização).</li></ul></div><div class="box insight"><div class="label">Significado Real</div><p>Disputa de poder bruto. O Congresso tenta manter controle financeiro (<span class="v" title="Mecanismo onde verbas são distribuídas sem transparência">"Orçamento Secreto" 2.0</span>); o STF freia a autonomia desregulada.</p></div></div>
+            <div class="smoke"><span class="smoke-badge"><svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg> Cortina de Fumaça</span><p style="margin-top:0.25rem">O discurso de "independência dos poderes" mascara a manutenção de um balcão de negócios onde verbas são trocadas por apoio político sem fiscalização.</p></div>
+            <div class="raio-x"><div class="label">Raio-X do Agente Público</div><div class="raio-x-list single"><div class="person"><div class="person-avatar">AL</div><div class="person-info"><h4>Arthur Lira</h4><p class="role">Presidente da Câmara</p><p class="bio">Investigado por corrupção passiva (denúncia rejeitada pelo STF em 2023). Figura central no controle das <span class="v" title="Recurso enviado direto à prefeitura sem projeto definido">Emendas Pix</span>.</p></div></div></div></div>
+        </article>
+
+        <aside class="glossary">
+            <h3>GLOSSÁRIO TÁTICO</h3>
+            <div class="glossary-grid">
+                <div class="glossary-item"><strong>Arcabouço Fiscal</strong><p>Regras que definem o limite de gastos do governo com base na arrecadação. Substituiu o "Teto de Gastos".</p></div>
+                <div class="glossary-item"><strong>Emendas Pix</strong><p>Dinheiro enviado por deputados direto à prefeitura sem projeto específico, dificultando rastreio.</p></div>
+                <div class="glossary-item"><strong>Indiciamento</strong><p>Ato formal da polícia apontando indícios de crime. Não é condenação — é o passo anterior à denúncia do MP.</p></div>
+                <div class="glossary-item"><strong>Inelegibilidade</strong><p>Perda do direito de ser votado por tempo determinado (ex: 8 anos). Não significa prisão.</p></div>
+                <div class="glossary-item"><strong>Renúncia Fiscal</strong><p>Quando o governo abre mão de cobrar um tributo. Reduz arrecadação e pode exigir cortes ou novos impostos.</p></div>
+                <div class="glossary-item"><strong>PLOA</strong><p>Projeto de Lei Orçamentária Anual. Define quanto o governo planeja arrecadar e gastar no ano seguinte.</p></div>
+            </div>
+        </aside>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-inner">
+            <div class="footer-grid">
+                <div class="footer-brand"><h3>Observatório Cívico</h3><p>Plataforma independente dedicada a filtrar a narrativa política e expor a mecânica de poder através de dados e históricos factuais.</p><div class="f-tags"><span class="f-tag">Sem Viés</span><span class="f-tag">Sem Ads</span><span class="f-tag">Open Source</span></div></div>
+                <div class="footer-col"><h4>Mapa do Site</h4><ul><li><a href="#">Relatórios Nacionais</a></li><li><a href="#">Fiscalização Estadual</a></li><li><a href="#">Câmaras Municipais</a></li><li><a href="#">Geopolítica Global</a></li></ul></div>
+                <div class="footer-col"><h4>Legal &amp; Dados</h4><ul><li><a href="#">Metodologia de Análise</a></li><li><a href="#">Fontes de Dados (API)</a></li><li><a href="#">Termos de Uso</a></li><li><a href="#">Política de Privacidade</a></li></ul></div>
+            </div>
+            <div class="footer-bottom"><span>© 2025 Observatório Cívico</span><span>Dados de exemplo · Gerado por I.A. sob supervisão humana</span></div>
+        </div>
+    </footer>
+
+    <script>
+    (function() {
+        const tv = document.getElementById('bbTv');
+        const iris = document.getElementById('iris');
+        const eye = document.getElementById('eye');
+
+        let isCaught = false;
+        let isMoving = false;
+        const MARGIN = 20;
+        const TV_W = 76;
+        const TV_H = 90;
+
+        // Posições válidas: 4 cantos laterais (nunca no centro/sobre o feed)
+        function getSlots() {
+            const vw = window.innerWidth;
+            const vh = window.innerHeight;
+            const feedLeft = (vw - 740) / 2;
+            const feedRight = feedLeft + 740;
+
+            // Área lateral esquerda e direita
+            const leftX = Math.max(MARGIN, feedLeft - TV_W - 30);
+            const rightX = Math.min(vw - TV_W - MARGIN, feedRight + 30);
+
+            return [
+                { x: leftX, y: 80 },                          // top-left
+                { x: rightX, y: 80 },                         // top-right
+                { x: leftX, y: vh * 0.4 },                    // mid-left
+                { x: rightX, y: vh * 0.4 },                   // mid-right
+                { x: leftX, y: vh - TV_H - 100 },             // bottom-left
+                { x: rightX, y: vh - TV_H - 100 },            // bottom-right
+                { x: leftX, y: vh * 0.2 },                    // upper-left
+                { x: rightX, y: vh * 0.2 },                   // upper-right
+                { x: leftX, y: vh * 0.65 },                   // lower-left
+                { x: rightX, y: vh * 0.65 },                  // lower-right
+            ];
+        }
+
+        let currentSlot = 1; // start top-right
+
+        function placeTV(slotIndex, animate) {
+            const slots = getSlots();
+            const s = slots[slotIndex % slots.length];
+            if (animate) {
+                tv.style.transition = 'top 0.45s cubic-bezier(0.34, 1.56, 0.64, 1), left 0.45s cubic-bezier(0.34, 1.56, 0.64, 1)';
+            } else {
+                tv.style.transition = 'none';
+            }
+            tv.style.left = s.x + 'px';
+            tv.style.top = s.y + 'px';
+        }
+
+        // Pick a random DIFFERENT slot
+        function pickNewSlot() {
+            const slots = getSlots();
+            let next;
+            do {
+                next = Math.floor(Math.random() * slots.length);
+            } while (next === currentSlot);
+            currentSlot = next;
+            return next;
+        }
+
+        // Init position
+        placeTV(currentSlot, false);
+
+        // ── Eye tracking ──
+        document.addEventListener('mousemove', (e) => {
+            if (isCaught) return;
+            const eyeRect = eye.getBoundingClientRect();
+            const ecx = eyeRect.left + eyeRect.width / 2;
+            const ecy = eyeRect.top + eyeRect.height / 2;
+            const dx = e.clientX - ecx;
+            const dy = e.clientY - ecy;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const max = 4;
+            const f = Math.min(dist / 200, 1);
+            iris.style.transform = `translate(calc(-50% + ${(dx/(dist||1))*max*f}px), calc(-50% + ${(dy/(dist||1))*max*f}px))`;
+        });
+
+        // ── Random blink ──
+        function blink() {
+            if (isCaught) return;
+            eye.classList.add('blinking');
+            setTimeout(() => eye.classList.remove('blinking'), 130);
+            setTimeout(blink, 2500 + Math.random() * 4000);
+        }
+        setTimeout(blink, 2000);
+
+        // ── Hover = flee to new slot ──
+        tv.addEventListener('mouseenter', () => {
+            if (isCaught || isMoving) return;
+            isMoving = true;
+            // Scared blink
+            eye.classList.add('blinking');
+            setTimeout(() => eye.classList.remove('blinking'), 100);
+
+            const next = pickNewSlot();
+            placeTV(next, true);
+
+            setTimeout(() => { isMoving = false; }, 500);
+        });
+
+        // ── Click = caught, disappear, return in 10s ──
+        tv.addEventListener('click', (e) => {
+            if (isCaught) return;
+            e.stopPropagation();
+
+            isCaught = true;
+            tv.classList.add('hidden');
+
+            setTimeout(() => {
+                isCaught = false;
+                currentSlot = pickNewSlot();
+                placeTV(currentSlot, false);
+
+                tv.classList.remove('hidden');
+                tv.classList.remove('descending');
+                void tv.offsetWidth;
+                tv.classList.add('descending');
+            }, 10000);
+        });
+
+        // Reposition on resize
+        window.addEventListener('resize', () => {
+            if (!isCaught) placeTV(currentSlot, false);
+        });
+
+        tv.addEventListener('animationend', () => tv.classList.remove('descending'));
+    })();
+    </script>
+</body>
+</html>
